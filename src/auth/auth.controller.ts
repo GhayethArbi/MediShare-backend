@@ -28,14 +28,14 @@ export class AuthController {
     return this.authService.refreshTokens(refreshTokenDto.refreshToken);
   }
 
-  @UseGuards(AuthenticationGuard)
+ // @UseGuards(AuthenticationGuard)
   @Put('change-password')
   async changePassword(
     @Body() changePasswordDto: ChangePasswordDto,
     @Req() req,
   ) {
     return this.authService.changePassword(
-      req.userId,
+      changePasswordDto.userId,
       changePasswordDto.oldPassword,
       changePasswordDto.newPassword,
     );

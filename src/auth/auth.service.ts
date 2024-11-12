@@ -84,6 +84,10 @@ export class AuthService {
     return {
       statusCode: HttpStatus.OK,
       userId: user._id,
+      userName: user.name,
+      userEmail: user.email,
+      userPassword: user.password,
+
       ...tokens,
     };
   }
@@ -96,9 +100,10 @@ export class AuthService {
     }
 
     //Compare the old password with the password in DB
+    
     const passwordMatch = await bcrypt.compare(oldPassword, user.password);
     if (!passwordMatch) {
-      throw new UnauthorizedException('Wrong credentials');
+      throw new UnauthorizedException('Wrong credentials'+"old passwoed is "+oldPassword +"  and new password is|| "+user.password+"   ||user id   :"+userId);
     }
 
     //Change user's password
