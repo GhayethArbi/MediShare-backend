@@ -31,6 +31,7 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() credentials: LoginDto) {
+    console.log("in login with",credentials.email,credentials.password);
     return this.authService.login(credentials);
   }
 
@@ -39,6 +40,7 @@ export class AuthController {
     return this.authService.refreshTokens(refreshTokenDto.refreshToken);
   }
 
+ // @UseGuards(AuthenticationGuard)
   @Put('change-password')
   async changePassword(
     @Body() changePasswordDto: ChangePasswordDto,
@@ -98,20 +100,7 @@ export class AuthController {
    
     return this.authService.loginGoogle(req.user)
     //this.authService.login(userDto) // Log in the user
-  
   }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

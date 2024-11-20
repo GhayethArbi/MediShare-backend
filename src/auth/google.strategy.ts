@@ -8,7 +8,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(private readonly authService: AuthService) {
     super({
       clientID: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      clientSecret:  process.env.GOOGLE_CLIENT_SECRET,
       callbackURL: 'http://localhost:3000/auth/google/callback',
       scope: ['profile', 'email'],
     });
@@ -18,11 +18,11 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     console.log('Access Token:', accessToken);
     console.log('Refresh Token:', refreshToken);
     console.log('Google Profile:', profile); // This should show the full profile data from Google
-  
+
     if (!profile) {
       throw new Error('Google profile is undefined');
     }
-  
+
     const user = await this.authService.findOrCreateUser(profile);
     return user;
   }
