@@ -1,14 +1,26 @@
-import { Body, Controller, Post, Put, Req, UseGuards } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable no-var */
+/* eslint-disable @typescript-eslint/no-unused-expressions */
+import {Get, Body, Controller, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dtos/signup.dto';
 import { LoginDto } from './dtos/login.dto';
 import { RefreshTokenDto } from './dtos/refresh-tokens.dto';
 import { ChangePasswordDto } from './dtos/change-password.dto';
-import { AuthenticationGuard } from 'src/guards/authentication.guard';
+//import { AuthenticationGuard } from 'src/guards/authentication.guard';
 import { ForgotPasswordDto } from './dtos/forgot-password.dto';
 import { ResetPasswordDto } from './dtos/reset-password.dto';
 import { VerifyOtpDto } from './dtos/verify-otp.dto';
+//import { GoogleAuthGuard } from './google-auth.guard';
+//import { userInfo } from 'os';
+//import { log } from 'console';
+import {UpdateUserIndoDto} from './dtos/update-userInfo.dto'
+import { GoogleAuthGuard } from './google-auth.guard';
 
+
+interface AuthRequest extends Request {
+  user?: any; // Define `user` based on what GoogleAuthGuard attaches
+}
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -20,6 +32,7 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() credentials: LoginDto) {
+    console.log("in login with",credentials.email,credentials.password);
     return this.authService.login(credentials);
   }
 
@@ -35,9 +48,10 @@ export class AuthController {
     @Req() req,
   ) {
     return this.authService.changePassword(
-      changePasswordDto.userId,
       changePasswordDto.oldPassword,
       changePasswordDto.newPassword,
+      changePasswordDto.userId,
+
     );
   }
 
@@ -55,7 +69,7 @@ export class AuthController {
     return result; // Returns the reset token
    
   }
-
+ 
 
   @Put('reset-password')
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
@@ -67,4 +81,49 @@ export class AuthController {
       return result; // Success message after password reset
     
   }
+
+
+  // Google login initiation
+  @Get('google')
+  @UseGuards(GoogleAuthGuard)
+  async googleLogin() {
+    // Initiates the Google OAuth flow
+  }
+
+  // Google login redirect
+  @Get('google/callback')
+  @UseGuards(GoogleAuthGuard)
+  async googleLoginRedirect(@Req() req: AuthRequest) { // Use AuthRequest to access req.user
+  
+   var userDto = new LoginDto()
+   userDto.email = req.user.email
+   userDto.password = req.user.password
+   
+    return this.authService.loginGoogle(req.user)
+    //this.authService.login(userDto) // Log in the user
+  }
+
+
+
+
+
+
+
+
+
+  @Put('update-user')
+  async upadteUserInfo(@Body() updateuserinfo: UpdateUserIndoDto) {
+
+    // Call the service to reset the password
+   var email = updateuserinfo.email ; 
+   var name1 = updateuserinfo.name;
+  var  userId = updateuserinfo.userId;
+
+      const result = await this.authService.upadetuserInformation(name1,email,userId);
+      return result; // Success message after password reset
+    
+  }
+
+
+
 }

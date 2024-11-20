@@ -63,6 +63,7 @@ export class AuthService {
   }
 
   async login(credentials: LoginDto) {
+
     const { email, password } = credentials;
   
     // Find if user exists by email
@@ -74,7 +75,60 @@ export class AuthService {
     // Compare entered password with existing password
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
+      throw new UnauthorizedException('Wrong credentials this erorr ids from our');
+    }
+  
+    // Generate JWT tokens
+    const tokens = await this.generateUserTokens(user._id);
+  
+    // Return response with statusCode and user information
+    return {
+      statusCode: HttpStatus.OK,
+      userId: user._id,
+      userName : user.name,
+      userEmail : user.email,
+      
+      ...tokens,
+    };
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  async loginGoogle(credentials: LoginDto) {
+
+    const { email, password } = credentials;
+  
+    // Find if user exists by email
+    const user = await this.UserModel.findOne({ email });
+    if (!user) {
       throw new UnauthorizedException('Wrong credentials');
+    }
+  
+    // Compare entered password with existing password
+    const passwordMatch = password == user.password;
+    if (!passwordMatch) {
+      throw new UnauthorizedException('Wrong credentials this erorr ids from our');
     }
   
     // Generate JWT tokens
@@ -92,7 +146,20 @@ export class AuthService {
     };
   }
 
-  async changePassword(userId, oldPassword: string, newPassword: string) {
+
+
+
+
+
+
+
+
+
+
+
+
+
+  async changePassword(oldPassword: string, newPassword: string , userId : string) {
     //Find the user
     const user = await this.UserModel.findById(userId);
     if (!user) {
@@ -103,13 +170,14 @@ export class AuthService {
     
     const passwordMatch = await bcrypt.compare(oldPassword, user.password);
     if (!passwordMatch) {
-      throw new UnauthorizedException('Wrong credentials'+"old passwoed is "+oldPassword +"  and new password is|| "+user.password+"   ||user id   :"+userId);
+      throw new UnauthorizedException('Wrong credentials update the user id id    ---'+ user.id +"and the password send by the user is "+oldPassword );
     }
 
     //Change user's password
     const newHashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = newHashedPassword;
     await user.save();
+   return{ statusCode: HttpStatus.OK}
   }
 
   async forgotPassword(email: string) {
@@ -228,4 +296,100 @@ export class AuthService {
     const role = await this.rolesService.getRoleById(user.roleId.toString());
     return role.permissions;
   }
+
+
+
+  async findUserByEmail(email: string): Promise<User | null> {
+    return this.UserModel.findOne({ email }).exec();
+  }
+
+  async findOrCreateUser(profile: any) {
+    const email = profile.emails[0].value;
+    const name = profile.displayName;
+  
+    // Check if the user already exists
+    let user = await this.findUserByEmail(email);
+    if (!user) {
+      // If user doesn't exist, create a new one with a placeholder password
+      const newUser: SignupDto = {
+        email,
+        name,
+        password: '', // Leave main password empty as it's handled by Google
+      };
+      const signupResult = await this.signup(newUser);
+      user = signupResult.data; // Access the created user directly from the signup result
+    
+    }
+  
+    return user;
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  async upadetuserInformation(name: string, email: string, userId: string) {
+    try {
+      // Try to find the user by ID
+      const user = await this.UserModel.findById(userId);
+  
+      // If user is not found, throw a 404 Not Found exception
+      if (!user) {
+        throw new NotFoundException({
+          statusCode: HttpStatus.NOT_FOUND,
+          message: 'User not found',
+        });
+      }
+  
+      // Update user's information
+      user.email = email;
+      user.name = name;
+      await user.save();
+  
+      // Return a success response with the updated user data
+      return {
+        statusCode: HttpStatus.OK,
+        userdata: user
+      };
+    } catch (error) {
+      // Handle cases where the userId format is invalid
+      if (error.name === 'CastError') {
+        throw new BadRequestException({
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'Invalid user ID format',
+        });
+      }
+      // Re-throw any other error for global error handling
+      throw error;
+    }
+  }
+
+
+
+
+
+
+
+
+
+
+
+
 }

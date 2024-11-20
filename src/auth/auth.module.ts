@@ -10,6 +10,8 @@ import {
 import { OTP, OTPSchema } from './schemas/o-t-p.schema';
 import { MailService } from 'src/services/mail.service';
 import { RolesModule } from 'src/roles/roles.module';
+import { PassportModule } from '@nestjs/passport';
+import { GoogleStrategy } from 'src/auth/google.strategy';
 
 @Module({
   imports: [
@@ -28,9 +30,10 @@ import { RolesModule } from 'src/roles/roles.module';
         schema: OTPSchema,
       },
     ]),
+    PassportModule.register({ defaultStrategy: 'google' })
   ],
   controllers: [AuthController],
-  providers: [AuthService, MailService],
+  providers: [AuthService, MailService , GoogleStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}

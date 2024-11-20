@@ -8,6 +8,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RolesModule } from './roles/roles.module';
 import config from './config/config';
 import { MailService } from './services/mail.service';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { MailService } from './services/mail.service';
     }),
     AuthModule,
     RolesModule,
+    UserModule,
 
   ],
   controllers: [AppController],
