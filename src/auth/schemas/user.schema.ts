@@ -15,6 +15,9 @@ export class User extends Document {
   @Prop({ required: false, type: SchemaTypes.ObjectId })
   roleId: Types.ObjectId;
 
+  @Prop({ default: false })
+  isVerfied: Boolean;
+
 
 }
 

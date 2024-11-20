@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-var */
 /* eslint-disable @typescript-eslint/no-unused-expressions */
-import {Get, Body, Controller, Post, Put, Req, UseGuards } from '@nestjs/common';
+import { Get, Body, Controller, Post, Put, Req, UseGuards, Query } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dtos/signup.dto';
 import { LoginDto } from './dtos/login.dto';
@@ -14,7 +14,7 @@ import { VerifyOtpDto } from './dtos/verify-otp.dto';
 import { GoogleAuthGuard } from './google-auth.guard';
 import { userInfo } from 'os';
 import { log } from 'console';
-import {UpdateUserIndoDto} from './dtos/update-userInfo.dto'
+import { UpdateUserIndoDto } from './dtos/update-userInfo.dto'
 
 
 interface AuthRequest extends Request {
@@ -22,16 +22,22 @@ interface AuthRequest extends Request {
 }
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Post('signup')
   async signUp(@Body() signupData: SignupDto) {
     return this.authService.signup(signupData);
   }
 
+  @Get('confirm-email')
+  async confirmEmail(@Query('token') token: string) {
+    console.log(token);
+   return this.authService.confirmEmail(token);
+  }
+
   @Post('login')
   async login(@Body() credentials: LoginDto) {
-    console.log("in login with",credentials.email,credentials.password);
+    console.log("in login with", credentials.email, credentials.password);
     return this.authService.login(credentials);
   }
 
@@ -40,7 +46,10 @@ export class AuthController {
     return this.authService.refreshTokens(refreshTokenDto.refreshToken);
   }
 
- // @UseGuards(AuthenticationGuard)
+
+  
+
+  // @UseGuards(AuthenticationGuard)
   @Put('change-password')
   async changePassword(
     @Body() changePasswordDto: ChangePasswordDto,
@@ -66,19 +75,19 @@ export class AuthController {
     // Call the service to verify the OTP and get the reset token
     const result = await this.authService.verifyOtp(recoveryCode);
     return result; // Returns the reset token
-   
+
   }
- 
+
 
   @Put('reset-password')
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     const { newPassword, resetToken } = resetPasswordDto;
 
     // Call the service to reset the password
-   
-      const result = await this.authService.resetPassword(newPassword, resetToken);
-      return result; // Success message after password reset
-    
+
+    const result = await this.authService.resetPassword(newPassword, resetToken);
+    return result; // Success message after password reset
+
   }
 
 
@@ -93,11 +102,11 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
   async googleLoginRedirect(@Req() req: AuthRequest) { // Use AuthRequest to access req.user
-  
-   var userDto = new LoginDto()
-   userDto.email = req.user.email
-   userDto.password = req.user.password
-   
+
+    var userDto = new LoginDto()
+    userDto.email = req.user.email
+    userDto.password = req.user.password
+
     return this.authService.loginGoogle(req.user)
     //this.authService.login(userDto) // Log in the user
   }
@@ -114,13 +123,13 @@ export class AuthController {
   async upadteUserInfo(@Body() updateuserinfo: UpdateUserIndoDto) {
 
     // Call the service to reset the password
-   var email = updateuserinfo.email ; 
-   var name1 = updateuserinfo.name;
-  var  userId = updateuserinfo.userId;
+    var email = updateuserinfo.email;
+    var name1 = updateuserinfo.name;
+    var userId = updateuserinfo.userId;
 
-      const result = await this.authService.upadetuserInformation(name1,email,userId);
-      return result; // Success message after password reset
-    
+    const result = await this.authService.upadetuserInformation(name1, email, userId);
+    return result; // Success message after password reset
+
   }
 
 

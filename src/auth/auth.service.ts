@@ -20,6 +20,7 @@ import { nanoid } from 'nanoid';
 import { OTP } from './schemas/o-t-p.schema';
 import { MailService } from 'src/services/mail.service';
 import { RolesService } from 'src/roles/roles.service';
+import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class AuthService {
@@ -55,13 +56,56 @@ export class AuthService {
       email,
       password: hashedPassword,
     });
+    const secret = process.env.JWT_SECRET;
+    const confirmationToken = jwt.sign({ email }, secret, { expiresIn: '1h' });
+
+    this.mailService.sendConfirmEmail(email, confirmationToken);
   
     // Return the response with statusCode and user information
-    return {
-      statusCode: HttpStatus.OK,
-      data: createdUser,
-    };
+      return {
+        statusCode: HttpStatus.OK,
+        data: createdUser,
+        message:"Registration successful! A confirmation email has been sent. Please check your inbox."
+      };
   }
+
+  async confirmEmail(token: string){
+    try {
+      const secret = process.env.JWT_SECRET;
+      const decoded = jwt.verify(token, secret);
+      const email = decoded['email'];
+      const user = await this.findUserByEmail(email);
+      if (!user) throw new Error('User not found');
+      user.isVerfied = true;
+      await user.save();
+
+
+      return { message: 'Email confirmed successfully', email };
+    } catch (error) {
+      throw new Error('Invalid or expired token');
+    }
+
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   async login(credentials: LoginDto) {
 
@@ -77,6 +121,9 @@ export class AuthService {
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
       throw new UnauthorizedException('Wrong credentials this erorr ids from our');
+    }
+    if(!user.isVerfied){
+      throw new UnauthorizedException('You most confirm your email');
     }
   
     // Generate JWT tokens
@@ -399,9 +446,6 @@ export class AuthService {
       throw error;
     }
   }
-
-
-
 
 
 
